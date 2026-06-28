@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    { "source": "/api/users/:path*", "destination": "https://macondo.hackclub.com/api/users/:path*" },
+    { "source": "/api/projects/:path*", "destination": "https://macondo.hackclub.com/api/projects/:path*" },
+    { "source": "/slack-proxy/:path*", "destination": "https://slack.com/api/:path*" },
+    { "source": "/hackclub-ai/:path*", "destination": "https://ai.hackclub.com/proxy/v1/:path*" }
+  ]
+}
