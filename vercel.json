@@ -1,4 +1,6 @@
 {
+  "buildCommand": "npm install && npm run build",
+  "outputDirectory": "dist",
   "rewrites": [
     { "source": "/api/users/:path*", "destination": "https://macondo.hackclub.com/api/users/:path*" },
     { "source": "/api/projects/:path*", "destination": "https://macondo.hackclub.com/api/projects/:path*" },
