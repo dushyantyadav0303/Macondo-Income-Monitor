@@ -33,7 +33,7 @@ ${notifyEnabled
 
 ${userEmoji ? `Add this for them: ${userEmoji}` : ''}
 
-No hashtags, mention numbers & project name. Keep it short & real.`
+START with @${username} mention. No hashtags, mention numbers & project name. Keep it short & real. No 🔥 🚀 💪 emojis.`
 
   const res = await fetch('/api/hackclub-ai/chat/completions', {
     method: 'POST',
@@ -54,25 +54,25 @@ function buildAutoPrompt({ username, projectName, sessionIncome, activeSeconds, 
   
   switch (type) {
     case 'session_start':
-      return `Quick 1-2 sentence Slack message for @${username} who just started working on ${projectName}. Rate: $${ratePerHour.toFixed(2)}/hr, streak ${streak}d. Be encouraging & brief. 1 emoji max.`
+      return `Quick 1-2 sentence Slack message for @${username} who just started working on ${projectName}. Rate: $${ratePerHour.toFixed(2)}/hr, streak ${streak}d. Be encouraging & brief. 1 emoji max. START with @${username}. No 🔥 🚀 💪 emojis.`
     
     case 'session_stop':
-      return `Quick 1-2 sentence Slack message for @${username} who finished ${projectName}. Earned $${sessionIncome.toFixed(3)} in ${hours}h, streak ${streak}d. Congratulate them. 1 emoji max.${userEmoji ? ` Add: ${userEmoji}` : ''}`
+      return `Quick 1-2 sentence Slack message for @${username} who finished ${projectName}. Earned $${sessionIncome.toFixed(3)} in ${hours}h, streak ${streak}d. Congratulate them. 1 emoji max. START with @${username}. No 🔥 🚀 💪 emojis.${userEmoji ? ` Add: ${userEmoji}` : ''}`
     
     case 'long_pause':
-      return `Quick 1 sentence Slack message for @${username} paused on ${projectName} for ${extra?.minutes}min (${hours}h earned). Gently remind them to come back. Be supportive. 1 emoji max.`
+      return `Quick 1 sentence Slack message for @${username} paused on ${projectName} for ${extra?.minutes}min (${hours}h earned). Gently remind them to come back. Be supportive. 1 emoji max. START with @${username}. No 🔥 🚀 💪 emojis.`
     
     case 'streak_risk':
-      return `Quick 1-2 sentence URGENT Slack message for @${username}. Their ${streak}-day streak ends today! They've logged ${extra?.todayHours}h, need 1+ hour. ${extra?.hoursLeft}h left in day. Be motivating. 1-2 emojis max.`
+      return `Quick 1-2 sentence URGENT Slack message for @${username}. Their ${streak}-day streak ends today! They've logged ${extra?.todayHours}h, need 1+ hour. ${extra?.hoursLeft}h left in day. Be motivating. 1-2 emojis max. START with @${username}. No 🔥 🚀 💪 emojis.`
     
     case 'streak_safe':
-      return `Quick 2 sentence celebratory Slack message for @${username}! They saved their ${streak}-day streak by logging ${extra?.todayHours}h today! Be excited. 1-2 emojis max.${userEmoji ? ` Add: ${userEmoji}` : ''}`
+      return `Quick 2 sentence celebratory Slack message for @${username}! They saved their ${streak}-day streak by logging ${extra?.todayHours}h today! Be excited. 1-2 emojis max. START with @${username}. No 🔥 🚀 💪 emojis.${userEmoji ? ` Add: ${userEmoji}` : ''}`
     
     case 'milestone':
-      return `Quick 1-2 sentence celebratory Slack message for @${username} hitting ${extra?.hours}h on ${projectName}! They earned $${sessionIncome.toFixed(3)}, streak ${streak}d. Be hyped. 1 emoji max.${userEmoji ? ` Add: ${userEmoji}` : ''}`
+      return `Quick 1-2 sentence celebratory Slack message for @${username} hitting ${extra?.hours}h on ${projectName}! They earned $${sessionIncome.toFixed(3)}, streak ${streak}d. Be hyped. 1 emoji max. START with @${username}. No 🔥 🚀 💪 emojis.${userEmoji ? ` Add: ${userEmoji}` : ''}`
     
     default:
-      return `Write a brief, friendly Slack message for @${username} about ${projectName}.`
+      return `Write a brief, friendly Slack message for @${username} about ${projectName}. START with @${username}. No 🔥 🚀 💪 emojis.`
   }
 }
 
