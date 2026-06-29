@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { AreaChart, Area, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts'
 import { Play, Pause, RotateCcw, Edit2, TrendingUp, TrendingDown, AlertTriangle, Wifi, Activity, ChevronUp, ChevronDown, LogOut, Bell, BellOff, Clock, Loader } from 'lucide-react'
-import { notify } from './notify.js'
+import { notify, autoNotify } from './notify.js'
 
 const LEVEL_RATES = { '1': 4, '2': 4.5, '3': 5, '4': 6 }
 
@@ -51,7 +51,18 @@ export default function IncomeMonitor({ user, onLogout }) {
   const [customFormula, setCustomFormula] = useState('')
   const [now, setNow] = useState(new Date())
   const [notifyOn, setNotifyOn] = useState(true)
-  const [notifyStatus, setNotifyStatus] = useState('idle') // idle | sending | done | error
+  const [notifyStatus, setNotifyStatus] = useState('idle')
+
+  // Auto-notification tracking refs (no re-renders)
+  const notifiedStartRef = useRef(false)
+  const notifiedPauseRef = useRef(false)
+  const notifiedStreakRiskRef = useRef(false)
+  const notifiedStreakSafeRef = useRef(false)
+  const notifiedMilestonesRef = useRef(new Set())
+  const pauseStartRef = useRef(null)
+  const prevRunningRef = useRef(false)
+  const prevStreakAtRiskRef = useRef(false)
+  const prevJournalHoursRef = useRef(0)
 
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 1000)
@@ -65,7 +76,7 @@ export default function IncomeMonitor({ user, onLogout }) {
   const streak = project?.project_streak_days || 1
   const level = project?.level || '1'
   const ratePerHour = formula
-    ? (() => { try { return eval(formula.replace('streak', streak).replace('level', getLevelRate(level))) } catch { return calcRatePerHour(streak, level) } })()
+    ? (() => { try { return Function('streak','level', `return ${formula}`)(streak, getLevelRate(level)) } catch { return calcRatePerHour(streak, level) } })()
     : calcRatePerHour(streak, level)
 
   const currentIncome = ratePerHour * (activeSeconds / 3600)
@@ -80,7 +91,6 @@ export default function IncomeMonitor({ user, onLogout }) {
   const isLow = isRunning && !isHigh
   const alertBlink = useBlink(isLow, 500)
 
-  // Streak risk: check if today has >= 1hr logged in journals
   const todayStr = now.toISOString().slice(0, 10)
   const todayJournalHours = (project?.journals || [])
     .filter(j => j.created_at?.slice(0, 10) === todayStr)
@@ -121,6 +131,91 @@ export default function IncomeMonitor({ user, onLogout }) {
     localStorage.setItem('im_sessions', JSON.stringify(sessions))
   }, [sessions])
 
+  // ── AUTO NOTIFICATIONS ──
+
+  // Reset notification flags when session resets
+  useEffect(() => {
+    if (!sessionStarted) {
+      notifiedStartRef.current = false
+      notifiedPauseRef.current = false
+      notifiedMilestonesRef.current = new Set()
+      pauseStartRef.current = null
+      prevRunningRef.current = false
+    }
+  }, [sessionStarted])
+
+  // Reset streak flags when project changes
+  useEffect(() => {
+    notifiedStreakRiskRef.current = false
+    notifiedStreakSafeRef.current = false
+    prevStreakAtRiskRef.current = false
+    prevJournalHoursRef.current = todayJournalHours
+  }, [project?.id])
+
+  // 1. SESSION START notification
+  useEffect(() => {
+    if (!notifyOn || !user?.slack_id) return
+    if (isRunning && !prevRunningRef.current && sessionStarted && !notifiedStartRef.current) {
+      notifiedStartRef.current = true
+      autoNotify('session_start', user, project, currentIncome, activeSeconds, effectiveRate, streak, isHigh)
+        .catch(() => {})
+    }
+    prevRunningRef.current = isRunning
+  }, [isRunning, sessionStarted, notifyOn, user, project, currentIncome, activeSeconds, effectiveRate, streak, isHigh])
+
+  // 2. LONG PAUSE notification (after 5 min paused)
+  useEffect(() => {
+    if (!notifyOn || !user?.slack_id) return
+    if (sessionStarted && !isRunning) {
+      if (!pauseStartRef.current) pauseStartRef.current = Date.now()
+      const pausedMin = (Date.now() - pauseStartRef.current) / 60000
+      if (pausedMin >= 5 && !notifiedPauseRef.current) {
+        notifiedPauseRef.current = true
+        autoNotify('long_pause', user, project, currentIncome, activeSeconds, effectiveRate, streak, isHigh, { minutes: Math.round(pausedMin) })
+          .catch(() => {})
+      }
+    } else {
+      pauseStartRef.current = null
+      notifiedPauseRef.current = false
+    }
+  }, [isRunning, sessionStarted, wallSeconds, notifyOn, user, project, currentIncome, activeSeconds, effectiveRate, streak, isHigh])
+
+  // 3. MILESTONE notifications (1h, 2h, 4h, 6h, 8h)
+  useEffect(() => {
+    if (!notifyOn || !user?.slack_id || !isRunning) return
+    const milestones = [3600, 7200, 14400, 21600, 28800]
+    for (const m of milestones) {
+      if (activeSeconds >= m && !notifiedMilestonesRef.current.has(m)) {
+        notifiedMilestonesRef.current.add(m)
+        autoNotify('milestone', user, project, currentIncome, activeSeconds, effectiveRate, streak, isHigh, { hours: m / 3600 })
+          .catch(() => {})
+      }
+    }
+  }, [activeSeconds, isRunning, notifyOn, user, project, currentIncome, effectiveRate, streak, isHigh])
+
+  // 4. STREAK RISK notification
+  useEffect(() => {
+    if (!notifyOn || !user?.slack_id) return
+    if (streakAtRisk && !prevStreakAtRiskRef.current && !notifiedStreakRiskRef.current) {
+      notifiedStreakRiskRef.current = true
+      const hoursLeft = Math.max(0, 24 - now.getHours())
+      autoNotify('streak_risk', user, project, currentIncome, activeSeconds, effectiveRate, streak, isHigh, { todayHours: todayJournalHours.toFixed(1), hoursLeft })
+        .catch(() => {})
+    }
+    prevStreakAtRiskRef.current = streakAtRisk
+  }, [streakAtRisk, notifyOn, user, project, currentIncome, activeSeconds, effectiveRate, streak, isHigh, todayJournalHours, now])
+
+  // 5. STREAK SAFE notification
+  useEffect(() => {
+    if (!notifyOn || !user?.slack_id) return
+    if (todayJournalHours >= 1 && prevJournalHoursRef.current < 1 && !notifiedStreakSafeRef.current) {
+      notifiedStreakSafeRef.current = true
+      autoNotify('streak_safe', user, project, currentIncome, activeSeconds, effectiveRate, streak, isHigh, { todayHours: todayJournalHours.toFixed(1) })
+        .catch(() => {})
+    }
+    prevJournalHoursRef.current = todayJournalHours
+  }, [todayJournalHours, notifyOn, user, project, currentIncome, activeSeconds, effectiveRate, streak, isHigh])
+
   const handleStart = () => {
     if (!sessionStarted) setSessionStarted(true)
     setIsRunning(true)
@@ -129,6 +224,11 @@ export default function IncomeMonitor({ user, onLogout }) {
   const handleStop = () => {
     setIsRunning(false)
     if (activeSeconds > 0) {
+      // Session stop notification
+      if (notifyOn && user?.slack_id) {
+        autoNotify('session_stop', user, project, currentIncome, activeSeconds, effectiveRate, streak, isHigh)
+          .catch(() => {})
+      }
       setSessions(prev => [...prev, {
         id: Date.now(), projectId: project?.id, projectName: project?.name,
         level, streak, duration: activeSeconds, income: currentIncome,
@@ -155,7 +255,7 @@ export default function IncomeMonitor({ user, onLogout }) {
       <div className="pointer-events-none absolute inset-0 z-0"
         style={{ background: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.07) 2px, rgba(0,0,0,0.07) 4px)' }} />
 
-      {/* ── HEADER ── */}
+      {/* HEADER */}
       <div className="relative z-10 border-b border-[#1a2540] bg-[#080d1a] px-4 py-2 flex items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <span className="text-[#00ff88] text-xs tracking-[0.25em] font-bold">INCOME/MONITOR</span>
@@ -215,7 +315,7 @@ export default function IncomeMonitor({ user, onLogout }) {
         </div>
       </div>
 
-      {/* ── ALERT BARS (below header, in-flow) ── */}
+      {/* ALERT BARS */}
       {(isLow || streakAtRisk) && (
         <div className="relative z-10">
           {isLow && (
@@ -239,7 +339,7 @@ export default function IncomeMonitor({ user, onLogout }) {
         </div>
       )}
 
-      {/* ── MAIN CONTENT ── */}
+      {/* MAIN CONTENT */}
       <div className="relative z-10 p-4 max-w-screen-xl mx-auto">
         <div className="grid grid-cols-12 gap-4">
 
@@ -299,8 +399,6 @@ export default function IncomeMonitor({ user, onLogout }) {
                     <span className="text-[#445]">×0.01) = </span>
                     <span className="text-white font-bold">${ratePerHour.toFixed(3)}/hr</span>
                   </div>
-
-                  {/* Today's journal hours */}
                   <div className={`mt-2 flex items-center justify-between text-[10px] px-2 py-1.5 rounded border ${todayJournalHours >= 1 ? 'border-[#00ff8822] text-[#00ff88]' : 'border-[#ffd70022] text-[#ffd700]'}`}
                     style={{ background: todayJournalHours >= 1 ? 'rgba(0,255,136,0.03)' : 'rgba(255,215,0,0.03)' }}>
                     <span>{todayJournalHours >= 1 ? '✓ Streak safe' : '⚠ Log needed'}</span>
