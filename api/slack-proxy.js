@@ -1,15 +1,22 @@
-export default function handler(req, res) {
-  const token = process.env.SLACK_BOT_TOKEN; // Regular env var, not VITE_
-  
-  // Forward request to Slack with token hidden server-side
-  const response = await fetch('https://slack.com/api/' + req.url, {
-    method: req.method,
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    },
-    body: req.body
-  });
-  
-  res.status(response.status).json(await response.json());
+export default async function handler(req, res) {
+  const targetPath = req.url.replace(/^\/api\/slack-proxy/, '') || '/'
+  const target = `https://slack.com/api${targetPath}`
+
+  const headers = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${process.env.SLACK_BOT_TOKEN || process.env.VITE_SLACK_BOT_TOKEN || ''}`,
+  }
+
+  try {
+    const response = await fetch(target, {
+      method: req.method,
+      headers,
+      body: req.method !== 'GET' ? JSON.stringify(req.body) : undefined,
+    })
+
+    const data = await response.json()
+    res.status(response.status).json(data)
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message })
+  }
 }

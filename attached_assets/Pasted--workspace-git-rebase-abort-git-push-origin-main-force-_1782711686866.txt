@@ -1,0 +1,48 @@
+~/workspace$ git rebase --abort
+git push origin main --force
+fatal: no rebase in progress
+Enumerating objects: 111, done.
+Counting objects: 100% (111/111), done.
+Delta compression using up to 2 threads
+Compressing objects: 100% (111/111), done.
+Writing objects: 100% (111/111), 420.41 KiB | 9.78 MiB/s, done.
+Total 111 (delta 62), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (62/62), done.
+remote: error: GH013: Repository rule violations found for refs/heads/main.
+remote: 
+remote: - GITHUB PUSH PROTECTION
+remote:   —————————————————————————————————————————
+remote:     Resolve the following violations before pushing again
+remote: 
+remote:     - Push cannot contain secrets
+remote: 
+remote:     
+remote:      (?) Learn how to resolve a blocked push
+remote:      https://docs.github.com/code-security/secret-scanning/working-with-secret-scanning-and-push-protection/working-with-push-protection-from-the-command-line#resolving-a-blocked-push
+remote:     
+remote:     
+remote:       —— Slack API Token ———————————————————————————————————
+remote:        locations:
+remote:          - commit: 249063ddc51522d3e437fb679ef7a3457c884b22
+remote:            path: .replit:40
+remote:          - commit: f29e1acb649b92b32ae3f52d9a28ad4595812d57
+remote:            path: dist/assets/index-CM-sgxFr.js:233
+remote:     
+remote:        (?) To push, remove secret from commit(s) or follow this URL to allow the secret.
+remote:        https://github.com/dushyantyadav0303/Macondo-Income-Monitor/security/secret-scanning/unblock-secret/3FlOlDtlNgY6dl3jHZXdAnH6kfP
+remote:     
+remote:     
+remote:       —— Hack Club AI Key ——————————————————————————————————
+remote:        locations:
+remote:          - commit: f29e1acb649b92b32ae3f52d9a28ad4595812d57
+remote:            path: dist/assets/index-CM-sgxFr.js:233
+remote:     
+remote:        (?) To push, remove secret from commit(s) or follow this URL to allow the secret.
+remote:        https://github.com/dushyantyadav0303/Macondo-Income-Monitor/security/secret-scanning/unblock-secret/3FnWzlrRzEEr7Bg0Im4jjDozXTn
+remote:     
+remote: 
+remote: 
+To https://github.com/dushyantyadav0303/Macondo-Income-Monitor
+ ! [remote rejected] main -> main (push declined due to repository rule violations)
+error: failed to push some refs to 'https://github.com/dushyantyadav0303/Macondo-Income-Monitor'
+~/workspace$ 

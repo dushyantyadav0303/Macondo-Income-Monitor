@@ -1,23 +1,21 @@
-export const config = { runtime: 'edge' }
-
-export default async function handler(req) {
-  const url = new URL(req.url)
-  const path = url.pathname.replace('/api/hackclub-ai', '') || '/chat/completions'
-  const target = `https://ai.hackclub.com/proxy/v1${path}`
+export default async function handler(req, res) {
+  const targetPath = req.url.replace(/^\/api\/hackclub-ai/, '') || '/'
+  const target = `https://ai.hackclub.com/proxy/v1${targetPath}`
 
   const headers = { 'Content-Type': 'application/json' }
-  const key = process.env.VITE_HACKCLUB_AI_KEY
+  const key = process.env.HACKCLUB_AI_KEY || process.env.VITE_HACKCLUB_AI_KEY || ''
   if (key) headers['Authorization'] = `Bearer ${key}`
 
-  const res = await fetch(target, {
-    method: req.method,
-    headers,
-    body: req.method !== 'GET' ? req.body : undefined,
-  })
+  try {
+    const response = await fetch(target, {
+      method: req.method,
+      headers,
+      body: req.method !== 'GET' ? JSON.stringify(req.body) : undefined,
+    })
 
-  const data = await res.json()
-  return new Response(JSON.stringify(data), {
-    status: res.status,
-    headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
-  })
+    const data = await response.json()
+    res.status(response.status).json(data)
+  } catch (e) {
+    res.status(500).json({ error: e.message })
+  }
 }

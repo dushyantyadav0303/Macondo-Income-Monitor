@@ -1,0 +1,63 @@
+~/workspace$ # 1. Remove the stale lock file
+rm -f .git/index.lock
+
+# 2. Pull the remote changes first (to avoid overwriting)
+git pull origin main
+
+# 3. If there are conflicts, accept yours for all files:
+git checkout --ours .
+git add -A
+git commit -m "merge remote"
+
+# 4. Push everything up
+git push origin main 
+From https://github.com/dushyantyadav0303/Macondo-Income-Monitor
+ * branch            main       -> FETCH_HEAD
+hint: You have divergent branches and need to specify how to reconcile them.
+hint: You can do so by running one of the following commands sometime before
+hint: your next pull:
+hint:
+hint:   git config pull.rebase false  # merge
+hint:   git config pull.rebase true   # rebase
+hint:   git config pull.ff only       # fast-forward only
+hint:
+hint: You can replace "git config" with "git config --global" to set a default
+hint: preference for all repositories. You can also pass --rebase, --no-rebase,
+hint: or --ff-only on the command line to override the configured default per
+hint: invocation.
+fatal: Need to specify how to reconcile divergent branches.
+Updated 0 paths from the index
+On branch main
+nothing to commit, working tree clean
+To https://github.com/dushyantyadav0303/Macondo-Income-Monitor
+ ! [rejected]        main -> main (non-fast-forward)
+error: failed to push some refs to 'https://github.com/dushyantyadav0303/Macondo-Income-Monitor'
+hint: Updates were rejected because the tip of your current branch is behind
+hint: its remote counterpart. If you want to integrate the remote changes,
+hint: use 'git pull' before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+~/workspace$ git pull origin main --rebase
+git push origin main
+From https://github.com/dushyantyadav0303/Macondo-Income-Monitor
+ * branch            main       -> FETCH_HEAD
+Auto-merging src/App.jsx
+CONFLICT (add/add): Merge conflict in src/App.jsx
+Auto-merging src/IncomeMonitor.jsx
+CONFLICT (add/add): Merge conflict in src/IncomeMonitor.jsx
+Auto-merging vite.config.js
+CONFLICT (add/add): Merge conflict in vite.config.js
+error: could not apply f5ef14c... Initial commit
+hint: Resolve all conflicts manually, mark them as resolved with
+hint: "git add/rm <conflicted_files>", then run "git rebase --continue".
+hint: You can instead skip this commit: run "git rebase --skip".
+hint: To abort and get back to the state before "git rebase", run "git rebase --abort".
+hint: Disable this message with "git config set advice.mergeConflict false"
+Could not apply f5ef14c... # Initial commit
+To https://github.com/dushyantyadav0303/Macondo-Income-Monitor
+ ! [rejected]        main -> main (non-fast-forward)
+error: failed to push some refs to 'https://github.com/dushyantyadav0303/Macondo-Income-Monitor'
+hint: Updates were rejected because a pushed branch tip is behind its remote
+hint: counterpart. If you want to integrate the remote changes, use 'git pull'
+hint: before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+~/workspace$ 

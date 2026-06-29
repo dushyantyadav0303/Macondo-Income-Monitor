@@ -1,5 +1,6 @@
-const SLACK_TOKEN = import.meta.env.VITE_SLACK_BOT_TOKEN || ''
-const AI_KEY = import.meta.env.VITE_HACKCLUB_AI_KEY || ''
+// No secrets here — Slack token lives server-side on Vercel API routes
+// Dev: Vite proxy forwards /api/slack-proxy and /api/hackclub-ai
+// Prod: Vercel serverless functions inject the token
 
 export async function generateMessage({ username, projectName, sessionIncome, activeSeconds, ratePerHour, streak, isHigh, notifyEnabled }) {
   const hours = (activeSeconds / 3600).toFixed(2)
@@ -9,12 +10,9 @@ User: @${username} | Project: ${projectName} | Session so far: ${hours}h, earned
 ${notifyEnabled ? 'Acknowledge they enabled notifications and mention their current session stats.' : 'Acknowledge they disabled notifications and give a brief session summary.'}
 Mention the project name and be specific to the numbers. No hashtags.`
 
-  const headers = { 'Content-Type': 'application/json' }
-  if (AI_KEY) headers['Authorization'] = `Bearer ${AI_KEY}`
-
-  const res = await fetch('/hackclub-ai/chat/completions', {
+  const res = await fetch('/api/hackclub-ai/chat/completions', {
     method: 'POST',
-    headers,
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       model: 'anthropic/claude-haiku-4-5',
       messages: [{ role: 'user', content: prompt }],
@@ -26,10 +24,9 @@ Mention the project name and be specific to the numbers. No hashtags.`
 }
 
 export async function sendSlack(channelId, text) {
-  if (!SLACK_TOKEN) throw new Error('VITE_SLACK_BOT_TOKEN not set in Secrets')
-  const res = await fetch('/slack-proxy/chat.postMessage', {
+  const res = await fetch('/api/slack-proxy/chat.postMessage', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SLACK_TOKEN}` },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ channel: channelId, text }),
   })
   const data = await res.json()

@@ -7,6 +7,7 @@ export default defineConfig({
     host: '0.0.0.0',
     port: 5000,
     allowedHosts: true,
+    strictPort: true,
     proxy: {
       '/api/projects': {
         target: 'https://macondo.hackclub.com',
@@ -18,18 +19,18 @@ export default defineConfig({
         changeOrigin: true,
         secure: true,
       },
-      '/slack-proxy': {
+      '/api/slack-proxy': {
         target: 'https://slack.com/api',
         changeOrigin: true,
         secure: true,
-        rewrite: path => path.replace(/^\/slack-proxy/, ''),
+        rewrite: (path) => path.replace(/^\/api\/slack-proxy/, ''),
       },
-      '/hackclub-ai': {
+      '/api/hackclub-ai': {
         target: 'https://ai.hackclub.com/proxy/v1',
         changeOrigin: true,
         secure: true,
-        rewrite: path => path.replace(/^\/hackclub-ai/, ''),
+        rewrite: (path) => path.replace(/^\/api\/hackclub-ai/, ''),
       },
-    }
-  }
+    },
+  },
 })

@@ -1,0 +1,25 @@
+
+> income-monitor@0.0.1 dev
+> vite --host 0.0.0.0 --port 5000
+
+[1G[0K[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mExpected identifier but found "<<"[0m
+
+    vite.config.js:9:0:
+[37m      9 │ [32m<<[37m<<<<< HEAD
+        ╵ [32m~~[0m
+
+[31mfailed to load config from /home/runner/workspace/vite.config.js[39m
+[31merror when starting dev server:
+Error: Build failed with 1 error:
+vite.config.js:9:0: ERROR: Expected identifier but found "<<"
+    at failureErrorWithLog (/home/runner/workspace/node_modules/esbuild/lib/main.js:1472:15)
+    at /home/runner/workspace/node_modules/esbuild/lib/main.js:945:25
+    at runOnEndCallbacks (/home/runner/workspace/node_modules/esbuild/lib/main.js:1315:45)
+    at buildResponseToResult (/home/runner/workspace/node_modules/esbuild/lib/main.js:943:7)
+    at /home/runner/workspace/node_modules/esbuild/lib/main.js:970:16
+    at responseCallbacks.<computed> (/home/runner/workspace/node_modules/esbuild/lib/main.js:622:9)
+    at handleIncomingPacket (/home/runner/workspace/node_modules/esbuild/lib/main.js:677:12)
+    at Socket.readFromStdout (/home/runner/workspace/node_modules/esbuild/lib/main.js:600:7)
+    at Socket.emit (node:events:524:28)
+    at addChunk (node:internal/streams/readable:561:12)[39m
+[1G[0K⠙[1G[0K
