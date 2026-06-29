@@ -22,18 +22,18 @@ export async function generateMessage({ username, projectName, sessionIncome, ac
   const userEmoji = userEmojis[username] || ''
   const { perf, motivation } = getPerformanceEmojis(isHigh)
 
-  const prompt = `Write a super friendly, hype Slack message (2-3 sentences max, like texting a close friend, casual AF) for a Hack Club member who ${action}:
+  const prompt = `Write a quick, friendly Slack message (max 1-2 sentences, casual) for a Hack Club member who ${action}:
 
-@${username} | Project: ${projectName} | Session: ${hours}h 💪 | Earned: $${sessionIncome.toFixed(3)} ${perf} | Rate: $${ratePerHour.toFixed(2)}/hr | Streak: ${streak}d 🔥 | ${isHigh ? 'CRUSHING IT 🚀' : 'needs some vibes 🌙'}
+@${username} | Project: ${projectName} | Session: ${hours}h | Earned: $${sessionIncome.toFixed(3)} | Streak: ${streak}d | ${isHigh ? 'Doing great' : 'Needs motivation'}
 
 ${notifyEnabled 
-  ? `They just ENABLED notifications! Hype them up hard, mention their session money & project name. Use: ${motivation}. React like you're texting a friend who's doing amazing.` 
-  : `They disabled notifications. No worries, give them a chill summary. Maybe make them laugh with JASDJFAJSFJAJSDFJ or :uuh: :loll: :cryin:`
+  ? `They enabled notifications! Keep it short & genuine. Mention the money & project. Use 1 emoji max like ${motivation}.` 
+  : `They disabled notifications. Brief summary, chill vibe.`
 }
 
-${userEmoji ? `Extra special vibe for @${username}: ${userEmoji}` : ''}
+${userEmoji ? `Add this for them: ${userEmoji}` : ''}
 
-Be genuine and excited, use their actual numbers, mention the project by name. No hashtags. Make them feel like you're genuinely hyped about what they're building!`
+No hashtags, mention numbers & project name. Keep it short & real.`
 
   const res = await fetch('/api/hackclub-ai/chat/completions', {
     method: 'POST',
@@ -51,41 +51,28 @@ Be genuine and excited, use their actual numbers, mention the project by name. N
 function buildAutoPrompt({ username, projectName, sessionIncome, activeSeconds, ratePerHour, streak, type, extra }) {
   const hours = (activeSeconds / 3600).toFixed(2)
   const userEmoji = userEmojis[username] || ''
-  const { perf, motivation } = getPerformanceEmojis(true) // Auto messages are celebratory
   
   switch (type) {
     case 'session_start':
-      return `Write a super hype, energetic Slack message (2 sentences, like a friend cheering you on, casual) for a Hack Club member who just started a coding session:
-User: @${username} | Project: ${projectName} | Rate: $${ratePerHour.toFixed(2)}/hr | Streak: ${streak}d
-Make them feel pumped to start! Mention the project name. Use emojis like :yayayayayay: or :macondo:. React like you're excited they're about to make money. No hashtags.${userEmoji ? ` Add: ${userEmoji}` : ''}`
+      return `Quick 1-2 sentence Slack message for @${username} who just started working on ${projectName}. Rate: $${ratePerHour.toFixed(2)}/hr, streak ${streak}d. Be encouraging & brief. 1 emoji max.`
     
     case 'session_stop':
-      return `Write a celebratory, hyped Slack message (2-3 sentences, genuine and excited, like a best friend) for a Hack Club member who just crushed a coding session:
-User: @${username} | Project: ${projectName} | Session: ${hours}h, earned $${sessionIncome.toFixed(3)}, avg rate $${ratePerHour.toFixed(2)}/hr | Streak: ${streak}d
-Go HARD celebrating them! Mention how much they earned and the project name. Use: ${motivation} or :yayayayayay:. Make them feel like an absolute legend. No hashtags.${userEmoji ? ` Add: ${userEmoji}` : ''}`
+      return `Quick 1-2 sentence Slack message for @${username} who finished ${projectName}. Earned $${sessionIncome.toFixed(3)} in ${hours}h, streak ${streak}d. Congratulate them. 1 emoji max.${userEmoji ? ` Add: ${userEmoji}` : ''}`
     
     case 'long_pause':
-      return `Write an encouraging, gentle Slack message (2 sentences, like a supportive friend, NOT scolding) for a Hack Club member whose session has been paused for ${extra?.minutes} minutes:
-User: @${username} | Project: ${projectName} | Session so far: ${hours}h, earned $${sessionIncome.toFixed(3)} | Streak: ${streak}d
-Remind them they're doing great and to come back for a quick push. Be warm and supportive. Use: :uuh: or :loll:. No hashtags.`
+      return `Quick 1 sentence Slack message for @${username} paused on ${projectName} for ${extra?.minutes}min (${hours}h earned). Gently remind them to come back. Be supportive. 1 emoji max.`
     
     case 'streak_risk':
-      return `Write an URGENT but friendly Slack message (2-3 sentences, like a friend giving you a heads up, NOT mean) for a Hack Club member whose ${streak}-day streak is about to disappear because they haven't logged 1 hour today:
-User: @${username} | Project: ${projectName} | Today logged: ${extra?.todayHours}h | Hours left in day: ${extra?.hoursLeft}h | Streak at risk!
-Make them feel the urgency but also hyped to save it! Use: :skull: or :yayayayayay:. Mention the streak is on the line. Be motivating. No hashtags.`
+      return `Quick 1-2 sentence URGENT Slack message for @${username}. Their ${streak}-day streak ends today! They've logged ${extra?.todayHours}h, need 1+ hour. ${extra?.hoursLeft}h left in day. Be motivating. 1-2 emojis max.`
     
     case 'streak_safe':
-      return `Write an EXTREMELY celebratory, hype Slack message (2-3 sentences, pure celebration, like your best friend just won) for a Hack Club member who just saved their ${streak}-day streak by logging 1+ hour today:
-User: @${username} | Project: ${projectName} | Today logged: ${extra?.todayHours}h | STREAK SAVED! 🔥
-GO ABSOLUTELY WILD celebrating them! Use: ${motivation} :blobhaj_party: :macondo: JASDJFAJSFJAJSDFJ. Make them feel like champions. No hashtags.${userEmoji ? ` Add: ${userEmoji}` : ''}`
+      return `Quick 2 sentence celebratory Slack message for @${username}! They saved their ${streak}-day streak by logging ${extra?.todayHours}h today! Be excited. 1-2 emojis max.${userEmoji ? ` Add: ${userEmoji}` : ''}`
     
     case 'milestone':
-      return `Write an exciting, celebratory Slack message (2-3 sentences, like your friend hit a personal record) for a Hack Club member who just hit ${extra?.hours} hours of active work in their session:
-User: @${username} | Project: ${projectName} | Session income: $${sessionIncome.toFixed(3)}, rate $${ratePerHour.toFixed(2)}/hr | Streak: ${streak}d | MILESTONE! 🚀
-Celebrate HARD! This is huge! Use: ${motivation} :yayayayayay:. Mention the project and how much they earned. No hashtags.${userEmoji ? ` Add: ${userEmoji}` : ''}`
+      return `Quick 1-2 sentence celebratory Slack message for @${username} hitting ${extra?.hours}h on ${projectName}! They earned $${sessionIncome.toFixed(3)}, streak ${streak}d. Be hyped. 1 emoji max.${userEmoji ? ` Add: ${userEmoji}` : ''}`
     
     default:
-      return `Write a super friendly Slack message for @${username} about their session on ${projectName}. Keep it casual and genuine!`
+      return `Write a brief, friendly Slack message for @${username} about ${projectName}.`
   }
 }
 
@@ -104,12 +91,11 @@ export async function generateAutoMessage(args) {
   return data.choices?.[0]?.message?.content?.trim() || ''
 }
 
-export async function sendSlack(channelId, text, slackId) {
-  const mention = slackId ? `<@${slackId}> ` : ''
+export async function sendSlack(channelId, text) {
   const res = await fetch('/api/slack-proxy/chat.postMessage', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ channel: channelId, text: mention + text }),
+    body: JSON.stringify({ channel: channelId, text }),
   })
   const data = await res.json()
   if (!data.ok) throw new Error(`Slack: ${data.error}`)
@@ -121,7 +107,7 @@ export async function notify(user, project, sessionIncome, activeSeconds, ratePe
     projectName: project?.name || 'project',
     sessionIncome, activeSeconds, ratePerHour, streak, isHigh, notifyEnabled,
   })
-  await sendSlack(user.slack_id, msg, user.slack_id)
+  await sendSlack(user.slack_id, msg)
   return msg
 }
 
@@ -131,6 +117,6 @@ export async function autoNotify(type, user, project, sessionIncome, activeSecon
     projectName: project?.name || 'project',
     sessionIncome, activeSeconds, ratePerHour, streak, type, extra,
   })
-  await sendSlack(user.slack_id, msg, user.slack_id)
+  await sendSlack(user.slack_id, msg)
   return msg
 }
