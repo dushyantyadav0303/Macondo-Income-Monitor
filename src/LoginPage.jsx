@@ -26,12 +26,12 @@ function HelpModal({ onClose }) {
           </li>
           <li className="flex gap-2">
             <span className="text-[#00ff88] font-bold flex-shrink-0">2.</span>
-            <span>Click on your profile icon/avatar in the top-right corner to open your profile page.</span>
+            <span>Click on your any Project then CLick on your profile icon/avatar to open your profile page.</span>
           </li>
           <li className="flex gap-2">
             <span className="text-[#00ff88] font-bold flex-shrink-0">3.</span>
             <span>Look at the browser URL — it will look like:<br />
-              <code className="text-[#ffd700] break-all">macondo.hackclub.com/u/c7242f92-916e-4ff9-9c69-631ed9dfc970</code>
+              <code className="text-[#ffd700] break-all">macondo.hackclub.com/u/c724ffwe92-916e-4ff9-9c69-63fwe9dfc970</code>
             </span>
           </li>
           <li className="flex gap-2">
@@ -42,7 +42,6 @@ function HelpModal({ onClose }) {
         <div className="mt-4 bg-[#060b18] border border-[#1a2540] rounded p-3 text-[10px] text-[#445]">
           <div className="text-[#334] mb-1">You can paste any of these formats:</div>
           <div className="text-[#0088ff] break-all">https://macondo.hackclub.com/u/your-uuid</div>
-          <div className="text-[#0088ff] break-all">https://macondo.hackclub.com/api/users/your-uuid</div>
           <div className="text-[#0088ff]">your-uuid-only</div>
         </div>
         <button onClick={onClose}

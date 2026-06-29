@@ -50,7 +50,7 @@ export default function IncomeMonitor({ user, onLogout }) {
   const [showFormulaEditor, setShowFormulaEditor] = useState(false)
   const [customFormula, setCustomFormula] = useState('')
   const [now, setNow] = useState(new Date())
-  const [notifyOn, setNotifyOn] = useState(false)
+  const [notifyOn, setNotifyOn] = useState(true)
   const [notifyStatus, setNotifyStatus] = useState('idle') // idle | sending | done | error
 
   useEffect(() => {
